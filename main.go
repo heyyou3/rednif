@@ -49,16 +49,27 @@ func main() {
 		if reference == nil {
 			return
 		}
-		fileActionMenu := tview.NewList().
-			AddItem("名前変更", "", 'r', nil).
-			AddItem("削除", "", 'd', nil).
-			AddItem("複製", "", 'c', nil).
-			AddItem("閉じる", "", 'q', func() {
-				flex.RemoveItem(app.GetFocus())
-				app.SetFocus(tree)
-			})
-		flex.AddItem(fileActionMenu, 0, 1, false)
-		app.SetFocus(fileActionMenu)
+		path := reference.(string)
+		_, err := ioutil.ReadDir(path)
+		if err == nil {
+			children := node.GetChildren()
+			if len(children) <= 0 {
+				add(node, path)
+			} else {
+				node.SetExpanded(!node.IsExpanded())
+			}
+		} else {
+			fileActionMenu := tview.NewList().
+				AddItem("名前変更", "", 'r', nil).
+				AddItem("削除", "", 'd', nil).
+				AddItem("複製", "", 'c', nil).
+				AddItem("閉じる", "", 'q', func() {
+					flex.RemoveItem(app.GetFocus())
+					app.SetFocus(tree)
+				})
+			flex.AddItem(fileActionMenu, 0, 1, false)
+			app.SetFocus(fileActionMenu)
+		}
 	})
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
