@@ -41,8 +41,19 @@ func main() {
 	// Add the current directory to the root node.
 	add(root, rootDir)
 
-	flex := tview.NewFlex().
-		AddItem(tree, 0, 1, true)
+	// TODO: Temporary placement
+	newPrimitive := func(text string) tview.Primitive {
+		return tview.NewTextView().
+			SetTextAlign(tview.AlignCenter).
+			SetText(text)
+	}
+
+	grid := tview.NewGrid().
+		SetRows(0, 2).
+		SetColumns(0, 0).
+		SetBorders(true).
+		AddItem(newPrimitive("Footer"), 1, 0, 1, 2, 0, 0, false).
+		AddItem(tree, 0, 0, 1, 1, 0, 0, true)
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
@@ -64,10 +75,10 @@ func main() {
 				AddItem("削除", "", 'd', nil).
 				AddItem("複製", "", 'c', nil).
 				AddItem("閉じる", "", 'q', func() {
-					flex.RemoveItem(app.GetFocus())
+					grid.RemoveItem(app.GetFocus())
 					app.SetFocus(tree)
 				})
-			flex.AddItem(fileActionMenu, 0, 1, false)
+			grid.AddItem(fileActionMenu, 0, 1, 1, 1, 0, 0, true)
 			app.SetFocus(fileActionMenu)
 		}
 	})
@@ -82,7 +93,7 @@ func main() {
 		return event
 	})
 
-	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
+	if err := app.SetRoot(grid, true).SetFocus(grid).Run(); err != nil {
 		panic(err)
 	}
 }
