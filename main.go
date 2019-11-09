@@ -41,18 +41,16 @@ func main() {
 	// Add the current directory to the root node.
 	add(root, rootDir)
 
-	// TODO: Temporary placement
-	newPrimitive := func(text string) tview.Primitive {
-		return tview.NewTextView().
-			SetTextAlign(tview.AlignCenter).
-			SetText(text)
-	}
+	pathToMove := tview.NewInputField().
+		SetLabel("directory path: ").
+		SetFieldWidth(20).
+		SetAcceptanceFunc(tview.InputFieldMaxLength(100))
 
 	grid := tview.NewGrid().
 		SetRows(0, 2).
 		SetColumns(0, 0).
 		SetBorders(true).
-		AddItem(newPrimitive("Footer"), 1, 0, 1, 2, 0, 0, false).
+		AddItem(pathToMove, 1, 0, 1, 2, 0, 0, false).
 		AddItem(tree, 0, 0, 1, 1, 0, 0, true)
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
@@ -83,12 +81,36 @@ func main() {
 		}
 	})
 
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	tree.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Name() {
 		// quit action
 		case "Rune[Q]":
 			app.Stop()
 			os.Exit(0)
+		// go to file path input field
+		case "Rune[g]":
+			app.SetFocus(pathToMove)
+		}
+		return event
+	})
+
+	pathToMove.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		// move TreeView
+		case tcell.KeyCtrlG:
+			app.SetFocus(tree)
+		// display input directory
+		case tcell.KeyEnter:
+			inputText := pathToMove.GetText()
+			root = tview.NewTreeNode(inputText).
+				SetColor(tcell.ColorRed)
+			tree = tree.
+				SetRoot(root).
+				SetCurrentNode(root)
+			add(root, inputText)
+			app.SetAfterDrawFunc(func(screen tcell.Screen) {
+				tree.Draw(screen)
+			})
 		}
 		return event
 	})
