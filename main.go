@@ -3,6 +3,7 @@ package main
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/gdamore/tcell"
@@ -11,6 +12,7 @@ import (
 
 // Show a navigable tree view of the current directory.
 func main() {
+	app := tview.NewApplication()
 	rootDir := "."
 	root := tview.NewTreeNode(rootDir).
 		SetColor(tcell.ColorRed)
@@ -39,24 +41,37 @@ func main() {
 	// Add the current directory to the root node.
 	add(root, rootDir)
 
-	// If a directory was selected, open it.
+	flex := tview.NewFlex().
+		AddItem(tree, 0, 1, true)
+
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
 		if reference == nil {
-			return // Selecting the root node does nothing.
+			return
 		}
-		children := node.GetChildren()
-		if len(children) == 0 {
-			// Load and show files in this directory.
-			path := reference.(string)
-			add(node, path)
-		} else {
-			// Collapse if visible, expand if collapsed.
-			node.SetExpanded(!node.IsExpanded())
-		}
+		fileActionMenu := tview.NewList().
+			AddItem("名前変更", "", 'r', nil).
+			AddItem("削除", "", 'd', nil).
+			AddItem("複製", "", 'c', nil).
+			AddItem("閉じる", "", 'q', func() {
+				flex.RemoveItem(app.GetFocus())
+				app.SetFocus(tree)
+			})
+		flex.AddItem(fileActionMenu, 0, 1, false)
+		app.SetFocus(fileActionMenu)
 	})
 
-	if err := tview.NewApplication().SetRoot(tree, true).Run(); err != nil {
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Name() {
+		// quit action
+		case "Rune[Q]":
+			app.Stop()
+			os.Exit(0)
+		}
+		return event
+	})
+
+	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
 	}
 }
