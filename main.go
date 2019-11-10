@@ -53,6 +53,15 @@ func main() {
 		AddItem(pathToMove, 1, 0, 1, 2, 0, 0, false).
 		AddItem(tree, 0, 0, 1, 1, 0, 0, true)
 
+	fileActionMenu := tview.NewList().
+		AddItem("名前変更", "", 'r', nil).
+		AddItem("削除", "", 'd', nil).
+		AddItem("複製", "", 'c', nil).
+		AddItem("閉じる", "", 'q', func() {
+			grid.RemoveItem(app.GetFocus())
+			app.SetFocus(tree)
+		})
+
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
 		if reference == nil {
@@ -68,14 +77,6 @@ func main() {
 				node.SetExpanded(!node.IsExpanded())
 			}
 		} else {
-			fileActionMenu := tview.NewList().
-				AddItem("名前変更", "", 'r', nil).
-				AddItem("削除", "", 'd', nil).
-				AddItem("複製", "", 'c', nil).
-				AddItem("閉じる", "", 'q', func() {
-					grid.RemoveItem(app.GetFocus())
-					app.SetFocus(tree)
-				})
 			grid.AddItem(fileActionMenu, 0, 1, 1, 1, 0, 0, true)
 			app.SetFocus(fileActionMenu)
 		}
@@ -90,6 +91,10 @@ func main() {
 		// go to file path input field
 		case "Rune[g]":
 			app.SetFocus(pathToMove)
+		// display directory control menu
+		case "Rune[m]":
+			grid.AddItem(fileActionMenu, 0, 1, 1, 1, 0, 0, true)
+			app.SetFocus(fileActionMenu)
 		}
 		return event
 	})
