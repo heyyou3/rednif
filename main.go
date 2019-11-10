@@ -2,9 +2,11 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -28,7 +30,7 @@ func main() {
 			panic(err)
 		}
 		for _, file := range files {
-			node := tview.NewTreeNode(file.Name()).
+			node := tview.NewTreeNode(fmt.Sprintf("[%s] %s", file.ModTime().Format(time.RFC3339), file.Name())).
 				SetReference(filepath.Join(path, file.Name())).
 				SetSelectable(true)
 			if file.IsDir() {
